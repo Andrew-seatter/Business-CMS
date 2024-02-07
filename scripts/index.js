@@ -1,15 +1,10 @@
 const mysql = require('mysql2');
 const inquirer = require('inquirer');
-const fs = require('fs');
+const fs = require('fs/promises');
+const viewAllDepartments = require('../scripts/questionChoices.js')
 
-const connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: 'Padresrules8?',
-    database: 'company_db',
-  });
 
-const questions = [
+const questions =  [
     {
         type: 'list',
         name:'tableChoice',
@@ -22,21 +17,34 @@ const questions = [
             'Add a role',
             'Add an employee',
             'Update an employee role'
-        ]
-    }
+        ],
+    },
 ]
 
 const questionChoice = (answers) => {
    switch(answers) {
     case 'View all departments':
-        return fs.readFile('db/viewDepartments.sql', (error, data) =>
-        error ? console.error(error) : console.log(data)
-      );
+        return 'hello';
    }
-}
-function init() {
-  inquirer.prompt(questions);
+};
+
+async function loadQuestions ()  {
+    await inquirer.prompt(questions)
+    
+    .then((answers) => {
+    const { answer } = answers;
+
+      questionChoice(answer).then(() => {
+        loadQuestions();
+    });
+     }).catch((error) => {
+    console.error('Error during prompt', error);
+    process.exit();
+     });
+  }
+
+function init () {
+    loadQuestions();
 }
 
-//calling function upon starting the application
 init();
