@@ -28,7 +28,7 @@ const questionChoice = (answers) => {
    }
 };
 
-async function loadQuestions ()  {
+/*async function loadQuestions ()  {
     await inquirer.prompt(questions)
     
     .then((answers) => {
@@ -41,10 +41,19 @@ async function loadQuestions ()  {
     console.error('Error during prompt', error);
     process.exit();
      });
-  }
+  }*/
 
-function init () {
-    loadQuestions();
+function init() {
+    inquirer.prompt(questions);
+    /*.then((answers) => {
+     console.log(questionChoice(answers.tableChoice));
+     });*/
+     
+     /*.catch((error) => {
+    console.error('Error during prompt', error);
+    process.exit();
+     });*/
+
 }
 
 init();
