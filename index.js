@@ -3,6 +3,7 @@ const inquirer = require('inquirer');
 const fs = require('fs/promises');
 const path = require('path');
 
+//connection to sql db
 const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
@@ -10,6 +11,8 @@ const connection = mysql.createConnection({
     database: 'company_db',
   });
 
+
+  //main set of questions that will be called back a few times in the CMS
 const questions =  [
     {
         type: 'list',
@@ -27,6 +30,7 @@ const questions =  [
     },
 ]
 
+//async function to coincide with the fs/promises package being used
 async function viewAllDepartments() {
  const results = await fs.readFile(path.join(__dirname, 'db', 'viewDepartments.sql'), 'utf8');
   
@@ -45,21 +49,24 @@ async function viewAllEmployees() {
     return connection.promise().query(results);
 }
 
+//inserting a department in to the db the function itself doesnt need to be async just what we do with the promise results needs to be awaited
 function addDepartment () {
         return inquirer.prompt([
           {
             type: "input",
             name: "departmentName",
-            message: "What would you like name the department",
+            message: "What would you like to name the department",
           }
-        ]).then(async answers => { 
+        ])
+        .then(async answers => { 
           await connection.promise().query(`INSERT INTO departments (department_title) VALUES ("${answers.departmentName}")`);
           return viewAllDepartments();
           })
       }
 
       async function addRole () {
-        const [departments] = await connection.promise().query('SELECT * FROM departments');
+      const [departments] = await connection.promise().query('SELECT * FROM departments');
+
       return inquirer.prompt([
         {
           type: "input",
@@ -76,7 +83,8 @@ function addDepartment () {
           name: "roleDepartment",
           choices: departments.map(({id, department_title}) => ({value: id, department_title})),
         }
-      ]).then(async answers => { 
+      ])
+      .then(async answers => { 
         await connection.promise().query(`INSERT INTO role (title, salary, department_id) VALUES ("${answers.roleName}", "${answers.roleSalary}", ${answers.roleDepartment})`);
         return viewAllRoles();
         })
@@ -85,6 +93,7 @@ function addDepartment () {
     async function addEmployee() {
         const [employees] = await connection.promise().query('SELECT * FROM employee');
         const [roles] = await connection.promise().query('SELECT * FROM role');
+
         return inquirer.prompt([
           {
             type: "input",
@@ -108,7 +117,8 @@ function addDepartment () {
             choices: employees.map(({id, first_name, last_name}) => ({value: id, name: `${first_name} ${last_name}`})),
             message: "Who will be this employee's manager?",
           }
-        ]).then(async answers => { 
+        ])
+        .then(async answers => { 
           await connection.promise().query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("${answers.firstName}", "${answers.lastName}", ${answers.employeeRole}, ${answers.employeeManager})`);
           return viewAllEmployees();
         });
@@ -117,6 +127,7 @@ function addDepartment () {
       async function updateEmployeeRole() {
         const [employees] = await connection.promise().query('SELECT * FROM employee');
         const [roles] = await connection.promise().query('SELECT * FROM role');
+
         return inquirer.prompt([
           {
             type: "list",
@@ -136,6 +147,8 @@ function addDepartment () {
         })
       };
 
+
+      //this switch had to be async to work with the above functions kept getting unfufilled promises when it was regular
 const questionChoice = async (answers) => {
    switch(answers) {
     case 'View all departments':
